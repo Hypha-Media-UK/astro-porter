@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # MariaDB Database
+  database:
+    image: mariadb:10.11
+    container_name: porter-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: porter_root_password
+      MYSQL_DATABASE: porter_management
+      MYSQL_USER: porter_user
+      MYSQL_PASSWORD: porter_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - porter_db_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - porter-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Express.js Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: porter-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: mysql://porter_user:porter_password@database:3306/porter_management
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:4321
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - porter-network
+    depends_on:
+      database:
+        condition: service_healthy
+    command: npm run dev
+
+  # Astro Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: porter-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - porter-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  porter_db_data:
+    driver: local
+
+networks:
+  porter-network:
+    driver: bridge
