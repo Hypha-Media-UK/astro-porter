@@ -53,7 +53,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     
     const building = await prisma.building.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: {
         departments: {
           include: {
@@ -127,7 +127,7 @@ router.put('/:id', async (req, res) => {
     const validatedData = updateBuildingSchema.parse(req.body);
     
     const building = await prisma.building.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: validatedData,
       include: {
         departments: {
@@ -172,7 +172,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     
     await prisma.building.delete({
-      where: { id: parseInt(id) }
+      where: { id: id }
     });
 
     res.json({
