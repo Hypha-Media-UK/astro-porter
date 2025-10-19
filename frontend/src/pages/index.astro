@@ -1,6 +1,6 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
-import DashboardView from '../components/DashboardView.vue';
+import ModernDashboardView from '../components/ModernDashboardView.vue';
 ---
 
 <AdminLayout title="Porter Management Dashboard">
@@ -9,7 +9,7 @@ import DashboardView from '../components/DashboardView.vue';
     <p class="text-gray-600 dark:text-gray-400 mt-2">Real-time staffing overview across all buildings and departments</p>
   </div>
 
-  <DashboardView client:load />
+  <ModernDashboardView client:load />
 </AdminLayout>
 
 <style>

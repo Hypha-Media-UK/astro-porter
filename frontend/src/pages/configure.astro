@@ -1,6 +1,6 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
-import ConfigureView from '../components/ConfigureView.vue';
+import ModernConfigureView from '../components/ModernConfigureView.vue';
 ---
 
 <AdminLayout title="Configure - Porter Management">
@@ -9,5 +9,5 @@ import ConfigureView from '../components/ConfigureView.vue';
     <p class="text-gray-600 dark:text-gray-400 mt-2">Manage buildings, departments, services, porters, and system settings</p>
   </div>
 
-  <ConfigureView client:load />
+  <ModernConfigureView client:load />
 </AdminLayout>
