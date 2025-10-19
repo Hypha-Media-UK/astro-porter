@@ -81,9 +81,9 @@
                   <h4 class="text-sm font-medium text-gray-900 dark:text-white">Daily Staffing Summary</h4>
                   <p class="text-sm text-gray-500 dark:text-gray-400">Overview of daily porter assignments and coverage</p>
                 </div>
-                <button class="btn-primary btn-sm">
+                <button @click="generateReport('daily-staffing')" class="btn-primary btn-sm" :disabled="isGenerating">
                   <i class="fas fa-download mr-1"></i>
-                  Generate
+                  {{ isGenerating ? 'Generating...' : 'Generate' }}
                 </button>
               </div>
             </div>
@@ -94,9 +94,9 @@
                   <h4 class="text-sm font-medium text-gray-900 dark:text-white">Weekly Coverage Analysis</h4>
                   <p class="text-sm text-gray-500 dark:text-gray-400">Detailed analysis of weekly coverage patterns</p>
                 </div>
-                <button class="btn-primary btn-sm">
+                <button @click="generateReport('coverage-analysis')" class="btn-primary btn-sm" :disabled="isGenerating">
                   <i class="fas fa-download mr-1"></i>
-                  Generate
+                  {{ isGenerating ? 'Generating...' : 'Generate' }}
                 </button>
               </div>
             </div>
@@ -107,9 +107,9 @@
                   <h4 class="text-sm font-medium text-gray-900 dark:text-white">Porter Utilization</h4>
                   <p class="text-sm text-gray-500 dark:text-gray-400">Individual porter workload and utilization rates</p>
                 </div>
-                <button class="btn-primary btn-sm">
+                <button @click="generateReport('porter-utilization')" class="btn-primary btn-sm" :disabled="isGenerating">
                   <i class="fas fa-download mr-1"></i>
-                  Generate
+                  {{ isGenerating ? 'Generating...' : 'Generate' }}
                 </button>
               </div>
             </div>
@@ -258,22 +258,47 @@
       </div>
     </div>
 
-    <!-- Coming Soon Notice -->
+    <!-- Recent Reports -->
     <div class="mt-8 card">
-      <div class="card-body text-center">
-        <i class="fas fa-chart-bar text-4xl text-gray-400 mb-4"></i>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Advanced Analytics Coming Soon</h3>
-        <p class="text-gray-500 dark:text-gray-400">
-          We're working on advanced analytics features including real-time dashboards, 
-          predictive analytics, and automated insights.
-        </p>
+      <div class="card-header">
+        <h3 class="card-title">Recent Reports</h3>
+      </div>
+      <div class="card-body">
+        <div class="space-y-4">
+          <div v-for="report in recentReports" :key="report.id" class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-600">
+            <div class="flex items-center">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4 dark:bg-blue-900">
+                <i :class="report.icon" class="text-blue-600 dark:text-blue-300"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ report.name }}</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Generated {{ report.generated }}</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button class="btn-secondary btn-sm">
+                <i class="fas fa-download mr-1"></i>
+                Download
+              </button>
+              <button class="btn-primary btn-sm">
+                <i class="fas fa-eye mr-1"></i>
+                View
+              </button>
+            </div>
+          </div>
+          <div v-if="recentReports.length === 0" class="text-center py-8">
+            <i class="fas fa-file-alt text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No reports generated yet</h3>
+            <p class="text-gray-500 dark:text-gray-400">Generate your first report using the options above.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 // Reactive data
 const dateFrom = ref(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
@@ -281,6 +306,33 @@ const dateTo = ref(new Date().toISOString().split('T')[0])
 const exportFormat = ref('pdf')
 const includeCharts = ref(true)
 const includeRawData = ref(false)
+const recentReports = ref([])
+const isGenerating = ref(false)
+
+// Sample recent reports data
+const sampleReports = [
+  {
+    id: 1,
+    name: 'Daily Staffing Summary',
+    icon: 'fas fa-users',
+    generated: '2 hours ago',
+    type: 'staffing'
+  },
+  {
+    id: 2,
+    name: 'Coverage Analysis',
+    icon: 'fas fa-chart-line',
+    generated: 'Yesterday',
+    type: 'operational'
+  },
+  {
+    id: 3,
+    name: 'Porter Utilization Report',
+    icon: 'fas fa-clock',
+    generated: '2 days ago',
+    type: 'operational'
+  }
+]
 
 // Computed
 const lastGenerated = computed(() => {
@@ -291,6 +343,68 @@ const lastGenerated = computed(() => {
     hour: '2-digit',
     minute: '2-digit'
   })
+})
+
+// Methods
+const generateReport = async (reportType) => {
+  isGenerating.value = true
+
+  try {
+    // Simulate report generation
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    // Add to recent reports
+    const newReport = {
+      id: Date.now(),
+      name: getReportName(reportType),
+      icon: getReportIcon(reportType),
+      generated: 'Just now',
+      type: reportType
+    }
+
+    recentReports.value.unshift(newReport)
+
+    // Keep only last 10 reports
+    if (recentReports.value.length > 10) {
+      recentReports.value = recentReports.value.slice(0, 10)
+    }
+
+    alert(`${newReport.name} generated successfully!`)
+  } catch (error) {
+    console.error('Error generating report:', error)
+    alert('Failed to generate report')
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+const getReportName = (type) => {
+  const names = {
+    'daily-staffing': 'Daily Staffing Summary',
+    'coverage-analysis': 'Coverage Analysis',
+    'porter-utilization': 'Porter Utilization Report',
+    'department-performance': 'Department Performance',
+    'shift-analysis': 'Shift Analysis',
+    'overtime-report': 'Overtime Report'
+  }
+  return names[type] || 'Custom Report'
+}
+
+const getReportIcon = (type) => {
+  const icons = {
+    'daily-staffing': 'fas fa-users',
+    'coverage-analysis': 'fas fa-chart-line',
+    'porter-utilization': 'fas fa-clock',
+    'department-performance': 'fas fa-building',
+    'shift-analysis': 'fas fa-calendar',
+    'overtime-report': 'fas fa-exclamation-triangle'
+  }
+  return icons[type] || 'fas fa-file-alt'
+}
+
+// Lifecycle
+onMounted(() => {
+  recentReports.value = [...sampleReports]
 })
 </script>
 
