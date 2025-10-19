@@ -616,8 +616,117 @@
         </div>
       </div>
 
+      <!-- Allocations Tab -->
+      <div v-if="activeTab === 'allocations'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Allocations</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Manage porter allocations and scheduling</p>
+          </div>
+          <button @click="openAllocationModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Allocation
+          </button>
+        </div>
+
+        <!-- Allocations Table -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Porter</th>
+                    <th class="table-header-cell">Department</th>
+                    <th class="table-header-cell">Date & Time</th>
+                    <th class="table-header-cell">Type</th>
+                    <th class="table-header-cell">Priority</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="allocation in allocations" :key="allocation.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 dark:bg-blue-900">
+                          <i class="fas fa-user text-blue-600 text-sm dark:text-blue-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ allocation.porter?.name || 'Unknown' }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ allocation.porter?.employee_id || 'N/A' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ allocation.department?.name || 'Unknown' }}</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">{{ allocation.location || 'No location' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ allocation.allocation_date || 'No date' }}</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">{{ allocation.start_time || '00:00' }} - {{ allocation.end_time || '00:00' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        allocation.allocation_type === 'EMERGENCY' ? 'badge-danger' :
+                        allocation.allocation_type === 'OVERTIME' ? 'badge-warning' :
+                        allocation.allocation_type === 'TEMPORARY' ? 'badge-info' :
+                        'badge-secondary'
+                      ]">
+                        {{ allocation.allocation_type?.replace('_', ' ') || 'Regular' }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        allocation.priority === 'EMERGENCY' ? 'badge-danger' :
+                        allocation.priority === 'URGENT' ? 'badge-warning' :
+                        allocation.priority === 'HIGH' ? 'badge-warning' :
+                        allocation.priority === 'MEDIUM' ? 'badge-info' :
+                        'badge-secondary'
+                      ]">
+                        {{ allocation.priority }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        allocation.status === 'CONFIRMED' ? 'badge-success' :
+                        allocation.status === 'IN_PROGRESS' ? 'badge-info' :
+                        allocation.status === 'COMPLETED' ? 'badge-success' :
+                        allocation.status === 'CANCELLED' ? 'badge-danger' :
+                        allocation.status === 'NO_SHOW' ? 'badge-danger' :
+                        'badge-warning'
+                      ]">
+                        {{ allocation.status?.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editAllocation(allocation)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteAllocation(allocation)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="allocations.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No allocations found. Click "Add Allocation" to create your first allocation.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts', 'capabilities'].includes(activeTab)" class="space-y-6">
+      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts', 'capabilities', 'allocations'].includes(activeTab)" class="space-y-6">
         <div class="card">
           <div class="card-body">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
@@ -733,6 +842,27 @@
         @submit="handleCapabilitySubmit"
       />
     </ModernModal>
+
+    <!-- Allocation Modal -->
+    <ModernModal
+      v-if="showAllocationModal"
+      :show="showAllocationModal"
+      :title="editingAllocation ? 'Edit Allocation' : 'Add Allocation'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeAllocationModal"
+      @save="saveAllocationModal"
+    >
+      <ModernAllocationForm
+        ref="allocationFormRef"
+        :allocation="editingAllocation"
+        :porters="porters"
+        :departments="departments"
+        :services="services"
+        :shift-patterns="shifts"
+        @submit="handleAllocationSubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -745,6 +875,7 @@ import ModernPorterForm from './ModernPorterForm.vue'
 import ModernServiceForm from './ModernServiceForm.vue'
 import ModernShiftPatternForm from './ModernShiftPatternForm.vue'
 import ModernCapabilityForm from './ModernCapabilityForm.vue'
+import ModernAllocationForm from './ModernAllocationForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -770,6 +901,8 @@ const showShiftPatternModal = ref(false)
 const editingShiftPattern = ref(null)
 const showCapabilityModal = ref(false)
 const editingCapability = ref(null)
+const showAllocationModal = ref(false)
+const editingAllocation = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
@@ -777,6 +910,7 @@ const porterFormRef = ref(null)
 const serviceFormRef = ref(null)
 const shiftPatternFormRef = ref(null)
 const capabilityFormRef = ref(null)
+const allocationFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -865,6 +999,18 @@ const fetchCapabilities = async () => {
     }
   } catch (error) {
     console.error('Error fetching capabilities:', error)
+  }
+}
+
+const fetchAllocations = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/allocations')
+    if (response.ok) {
+      const data = await response.json()
+      allocations.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching allocations:', error)
   }
 }
 
@@ -1332,6 +1478,85 @@ const deleteCapability = async (capability) => {
   }
 }
 
+const openAllocationModal = () => {
+  editingAllocation.value = null
+  showAllocationModal.value = true
+}
+
+const closeAllocationModal = () => {
+  showAllocationModal.value = false
+  editingAllocation.value = null
+  if (allocationFormRef.value) {
+    allocationFormRef.value.resetForm()
+  }
+}
+
+const editAllocation = (allocation) => {
+  editingAllocation.value = allocation
+  showAllocationModal.value = true
+}
+
+const saveAllocationModal = () => {
+  if (allocationFormRef.value) {
+    allocationFormRef.value.handleSubmit()
+  }
+}
+
+const handleAllocationSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingAllocation.value
+      ? `http://localhost:3001/api/allocations/${editingAllocation.value.id}`
+      : 'http://localhost:3001/api/allocations'
+
+    const method = editingAllocation.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchAllocations()
+      closeAllocationModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save allocation'}`)
+    }
+  } catch (error) {
+    console.error('Error saving allocation:', error)
+    alert('Failed to save allocation')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteAllocation = async (allocation) => {
+  if (!confirm(`Are you sure you want to delete this allocation?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/allocations/${allocation.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchAllocations()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete allocation'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting allocation:', error)
+    alert('Failed to delete allocation')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
@@ -1340,5 +1565,6 @@ onMounted(() => {
   fetchServices()
   fetchShiftPatterns()
   fetchCapabilities()
+  fetchAllocations()
 })
 </script>
