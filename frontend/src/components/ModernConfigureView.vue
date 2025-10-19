@@ -1770,6 +1770,34 @@ const handleAvailabilitySubmit = async (formData) => {
   isSubmitting.value = true
 
   try {
+    // Transform form data to match backend schema
+    const startDateTime = formData.start_time
+      ? `${formData.start_date}T${formData.start_time}:00`
+      : `${formData.start_date}T00:00:00`
+
+    const endDateTime = formData.end_date && formData.end_time
+      ? `${formData.end_date}T${formData.end_time}:00`
+      : formData.end_date
+      ? `${formData.end_date}T23:59:59`
+      : `${formData.start_date}T23:59:59`
+
+    // Map availability_type to backend status
+    const statusMap = {
+      'AVAILABLE': 'AVAILABLE',
+      'UNAVAILABLE': 'UNAVAILABLE',
+      'PREFERRED': 'AVAILABLE',
+      'LIMITED': 'AVAILABLE',
+      'ON_CALL': 'OVERTIME'
+    }
+
+    const backendData = {
+      porter_id: formData.porter_id,
+      start_datetime: startDateTime,
+      end_datetime: endDateTime,
+      status: statusMap[formData.availability_type] || 'AVAILABLE',
+      reason: formData.unavailability_reason || formData.notes || ''
+    }
+
     const url = editingAvailability.value
       ? `http://localhost:3001/api/availability/${editingAvailability.value.id}`
       : 'http://localhost:3001/api/availability'
@@ -1781,7 +1809,7 @@ const handleAvailabilitySubmit = async (formData) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(backendData)
     })
 
     if (response.ok) {
