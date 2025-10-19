@@ -415,8 +415,101 @@
         </div>
       </div>
 
+      <!-- Shift Patterns Tab -->
+      <div v-if="activeTab === 'shifts'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Shift Patterns</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Configure shift patterns and schedules</p>
+          </div>
+          <button @click="openShiftPatternModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Shift Pattern
+          </button>
+        </div>
+
+        <!-- Shift Patterns Table -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Pattern</th>
+                    <th class="table-header-cell">Type</th>
+                    <th class="table-header-cell">Time</th>
+                    <th class="table-header-cell">Duration</th>
+                    <th class="table-header-cell">Working Days</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="pattern in shifts" :key="pattern.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div
+                          class="w-4 h-4 rounded mr-3"
+                          :style="{ backgroundColor: pattern.color_code || '#3B82F6' }"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ pattern.name }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ pattern.description || 'No description' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ pattern.shift_type?.replace('_', ' ') || 'Day' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ pattern.start_time || '07:00' }} - {{ pattern.end_time || '15:00' }}
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ pattern.duration_hours || 8 }}h</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ (pattern.working_days || []).length }} days/week
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        pattern.status === 'ACTIVE' ? 'badge-success' :
+                        pattern.status === 'INACTIVE' ? 'badge-secondary' :
+                        pattern.status === 'DRAFT' ? 'badge-warning' :
+                        'badge-secondary'
+                      ]">
+                        {{ pattern.status }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editShiftPattern(pattern)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteShiftPattern(pattern)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="shifts.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No shift patterns found. Click "Add Shift Pattern" to create your first pattern.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments', 'porters', 'services'].includes(activeTab)" class="space-y-6">
+      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts'].includes(activeTab)" class="space-y-6">
         <div class="card">
           <div class="card-body">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
@@ -498,6 +591,23 @@
         @submit="handleServiceSubmit"
       />
     </ModernModal>
+
+    <!-- Shift Pattern Modal -->
+    <ModernModal
+      v-if="showShiftPatternModal"
+      :show="showShiftPatternModal"
+      :title="editingShiftPattern ? 'Edit Shift Pattern' : 'Add Shift Pattern'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeShiftPatternModal"
+      @save="saveShiftPatternModal"
+    >
+      <ModernShiftPatternForm
+        ref="shiftPatternFormRef"
+        :shift-pattern="editingShiftPattern"
+        @submit="handleShiftPatternSubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -508,6 +618,7 @@ import ModernBuildingForm from './ModernBuildingForm.vue'
 import ModernDepartmentForm from './ModernDepartmentForm.vue'
 import ModernPorterForm from './ModernPorterForm.vue'
 import ModernServiceForm from './ModernServiceForm.vue'
+import ModernShiftPatternForm from './ModernShiftPatternForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -529,11 +640,14 @@ const showPorterModal = ref(false)
 const editingPorter = ref(null)
 const showServiceModal = ref(false)
 const editingService = ref(null)
+const showShiftPatternModal = ref(false)
+const editingShiftPattern = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
 const porterFormRef = ref(null)
 const serviceFormRef = ref(null)
+const shiftPatternFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -598,6 +712,18 @@ const fetchServices = async () => {
     }
   } catch (error) {
     console.error('Error fetching services:', error)
+  }
+}
+
+const fetchShiftPatterns = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/shift-patterns')
+    if (response.ok) {
+      const data = await response.json()
+      shifts.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching shift patterns:', error)
   }
 }
 
@@ -907,11 +1033,91 @@ const deleteService = async (service) => {
   }
 }
 
+const openShiftPatternModal = () => {
+  editingShiftPattern.value = null
+  showShiftPatternModal.value = true
+}
+
+const closeShiftPatternModal = () => {
+  showShiftPatternModal.value = false
+  editingShiftPattern.value = null
+  if (shiftPatternFormRef.value) {
+    shiftPatternFormRef.value.resetForm()
+  }
+}
+
+const editShiftPattern = (pattern) => {
+  editingShiftPattern.value = pattern
+  showShiftPatternModal.value = true
+}
+
+const saveShiftPatternModal = () => {
+  if (shiftPatternFormRef.value) {
+    shiftPatternFormRef.value.handleSubmit()
+  }
+}
+
+const handleShiftPatternSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingShiftPattern.value
+      ? `http://localhost:3001/api/shift-patterns/${editingShiftPattern.value.id}`
+      : 'http://localhost:3001/api/shift-patterns'
+
+    const method = editingShiftPattern.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchShiftPatterns()
+      closeShiftPatternModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save shift pattern'}`)
+    }
+  } catch (error) {
+    console.error('Error saving shift pattern:', error)
+    alert('Failed to save shift pattern')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteShiftPattern = async (pattern) => {
+  if (!confirm(`Are you sure you want to delete "${pattern.name}"?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/shift-patterns/${pattern.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchShiftPatterns()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete shift pattern'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting shift pattern:', error)
+    alert('Failed to delete shift pattern')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
   fetchDepartments()
   fetchPorters()
   fetchServices()
+  fetchShiftPatterns()
 })
 </script>
