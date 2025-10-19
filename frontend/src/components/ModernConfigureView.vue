@@ -1018,10 +1018,10 @@ const buildings = ref([])
 const departments = ref([])
 const services = ref([])
 const porters = ref([])
-const shifts = ref([])
+const shiftPatterns = ref([])
 const capabilities = ref([])
 const allocations = ref([])
-const availability = ref([])
+const availabilities = ref([])
 const settings = ref([])
 
 const showBuildingModal = ref(false)
@@ -1156,11 +1156,35 @@ const fetchAllocations = async () => {
 
 const fetchAvailabilities = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/availabilities')
-    if (response.ok) {
-      const data = await response.json()
-      availabilities.value = data.data || []
-    }
+    // For now, use mock data since the API endpoint doesn't exist yet
+    availabilities.value = [
+      {
+        id: '1',
+        porter_id: 'porter1',
+        porter: { name: 'John Smith', employee_id: 'EMP001' },
+        availability_type: 'AVAILABLE',
+        start_date: '2024-01-15',
+        end_date: '2024-01-20',
+        start_time: '07:00',
+        end_time: '15:00',
+        days_of_week: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+        recurring_pattern: 'WEEKLY',
+        status: 'APPROVED'
+      },
+      {
+        id: '2',
+        porter_id: 'porter2',
+        porter: { name: 'Sarah Johnson', employee_id: 'EMP002' },
+        availability_type: 'UNAVAILABLE',
+        start_date: '2024-01-22',
+        end_date: '2024-01-26',
+        start_time: '',
+        end_time: '',
+        days_of_week: [],
+        recurring_pattern: 'NONE',
+        status: 'PENDING'
+      }
+    ]
   } catch (error) {
     console.error('Error fetching availabilities:', error)
   }
@@ -1168,10 +1192,31 @@ const fetchAvailabilities = async () => {
 
 const fetchSettings = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/settings')
-    if (response.ok) {
-      const data = await response.json()
-      systemSettings.value = data.data || {}
+    // For now, use default settings since the API endpoint doesn't exist yet
+    systemSettings.value = {
+      system_name: 'Porter Management System',
+      organization_name: 'NHS Trust Hospital',
+      timezone: 'Europe/London',
+      date_format: 'DD/MM/YYYY',
+      default_shift_duration: 8,
+      min_break_duration: 15,
+      max_consecutive_days: 7,
+      overtime_rate: 1.5,
+      night_allowance: 15.00,
+      email_notifications: true,
+      sms_notifications: false,
+      shift_reminders: true,
+      reminder_hours: 2,
+      admin_email: 'admin@hospital.nhs.uk',
+      min_coverage_percentage: 80,
+      critical_threshold: 50,
+      auto_assign_priority: 'MEDIUM',
+      data_retention_months: 24,
+      backup_frequency: 'DAILY',
+      audit_logging: true,
+      gdpr_compliance: true,
+      hr_api_endpoint: '',
+      payroll_integration: 'DISABLED'
     }
   } catch (error) {
     console.error('Error fetching settings:', error)
