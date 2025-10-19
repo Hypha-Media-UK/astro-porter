@@ -1,16 +1,16 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import AdminLayout from '../layouts/AdminLayout.astro';
 import DashboardView from '../components/DashboardView.vue';
 ---
 
-<Layout title="Porter Management Dashboard">
-  <div class="dashboard-header">
-    <h1>Porter Management Dashboard</h1>
-    <p class="text-muted">Real-time staffing overview across all buildings and departments</p>
+<AdminLayout title="Porter Management Dashboard">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Porter Management Dashboard</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Real-time staffing overview across all buildings and departments</p>
   </div>
 
   <DashboardView client:load />
-</Layout>
+</AdminLayout>
 
 <style>
   .dashboard-header {

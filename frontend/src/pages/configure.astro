@@ -1,8 +1,13 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import AdminLayout from '../layouts/AdminLayout.astro';
 import ConfigureView from '../components/ConfigureView.vue';
 ---
 
-<Layout title="Configure - Porter Management">
+<AdminLayout title="Configure - Porter Management">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">System Configuration</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Manage buildings, departments, services, porters, and system settings</p>
+  </div>
+
   <ConfigureView client:load />
-</Layout>
+</AdminLayout>
