@@ -315,8 +315,108 @@
         </div>
       </div>
 
+      <!-- Services Tab -->
+      <div v-if="activeTab === 'services'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Services</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Manage hospital services and their requirements</p>
+          </div>
+          <button @click="openServiceModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Service
+          </button>
+        </div>
+
+        <!-- Services Table -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Service</th>
+                    <th class="table-header-cell">Department</th>
+                    <th class="table-header-cell">Type</th>
+                    <th class="table-header-cell">Priority</th>
+                    <th class="table-header-cell">Requirements</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="service in services" :key="service.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3 dark:bg-purple-900">
+                          <i class="fas fa-concierge-bell text-purple-600 text-sm dark:text-purple-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ service.name }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ service.location || 'No location' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ service.department?.name || 'Unknown' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ service.service_type?.replace('_', ' ') || 'General' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        service.priority_level === 'EMERGENCY' ? 'badge-danger' :
+                        service.priority_level === 'URGENT' ? 'badge-warning' :
+                        service.priority_level === 'HIGH' ? 'badge-warning' :
+                        service.priority_level === 'MEDIUM' ? 'badge-info' :
+                        'badge-secondary'
+                      ]">
+                        {{ service.priority_level }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        <div>{{ service.required_porters || 1 }} porter{{ (service.required_porters || 1) > 1 ? 's' : '' }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ service.estimated_duration || 15 }}min</div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        service.status === 'ACTIVE' ? 'badge-success' :
+                        service.status === 'INACTIVE' ? 'badge-secondary' :
+                        service.status === 'SUSPENDED' ? 'badge-danger' :
+                        'badge-warning'
+                      ]">
+                        {{ service.status }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editService(service)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteService(service)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="services.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No services found. Click "Add Service" to create your first service.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments', 'porters'].includes(activeTab)" class="space-y-6">
+      <div v-if="!['buildings', 'departments', 'porters', 'services'].includes(activeTab)" class="space-y-6">
         <div class="card">
           <div class="card-body">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
@@ -380,6 +480,24 @@
         @submit="handlePorterSubmit"
       />
     </ModernModal>
+
+    <!-- Service Modal -->
+    <ModernModal
+      v-if="showServiceModal"
+      :show="showServiceModal"
+      :title="editingService ? 'Edit Service' : 'Add Service'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeServiceModal"
+      @save="saveServiceModal"
+    >
+      <ModernServiceForm
+        ref="serviceFormRef"
+        :service="editingService"
+        :departments="departments"
+        @submit="handleServiceSubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -389,6 +507,7 @@ import ModernModal from './ModernModal.vue'
 import ModernBuildingForm from './ModernBuildingForm.vue'
 import ModernDepartmentForm from './ModernDepartmentForm.vue'
 import ModernPorterForm from './ModernPorterForm.vue'
+import ModernServiceForm from './ModernServiceForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -408,10 +527,13 @@ const showDepartmentModal = ref(false)
 const editingDepartment = ref(null)
 const showPorterModal = ref(false)
 const editingPorter = ref(null)
+const showServiceModal = ref(false)
+const editingService = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
 const porterFormRef = ref(null)
+const serviceFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -464,6 +586,18 @@ const fetchPorters = async () => {
     }
   } catch (error) {
     console.error('Error fetching porters:', error)
+  }
+}
+
+const fetchServices = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/services')
+    if (response.ok) {
+      const data = await response.json()
+      services.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching services:', error)
   }
 }
 
@@ -694,10 +828,90 @@ const deletePorter = async (porter) => {
   }
 }
 
+const openServiceModal = () => {
+  editingService.value = null
+  showServiceModal.value = true
+}
+
+const closeServiceModal = () => {
+  showServiceModal.value = false
+  editingService.value = null
+  if (serviceFormRef.value) {
+    serviceFormRef.value.resetForm()
+  }
+}
+
+const editService = (service) => {
+  editingService.value = service
+  showServiceModal.value = true
+}
+
+const saveServiceModal = () => {
+  if (serviceFormRef.value) {
+    serviceFormRef.value.handleSubmit()
+  }
+}
+
+const handleServiceSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingService.value
+      ? `http://localhost:3001/api/services/${editingService.value.id}`
+      : 'http://localhost:3001/api/services'
+
+    const method = editingService.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchServices()
+      closeServiceModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save service'}`)
+    }
+  } catch (error) {
+    console.error('Error saving service:', error)
+    alert('Failed to save service')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteService = async (service) => {
+  if (!confirm(`Are you sure you want to delete "${service.name}"?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/services/${service.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchServices()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete service'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting service:', error)
+    alert('Failed to delete service')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
   fetchDepartments()
   fetchPorters()
+  fetchServices()
 })
 </script>
