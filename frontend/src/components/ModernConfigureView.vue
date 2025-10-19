@@ -143,10 +143,82 @@
           </button>
         </div>
 
-        <!-- Departments content will be added here -->
+        <!-- Departments Table -->
         <div class="card">
-          <div class="card-body">
-            <p class="text-gray-500 dark:text-gray-400">Departments management coming soon...</p>
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Department</th>
+                    <th class="table-header-cell">Building</th>
+                    <th class="table-header-cell">Staffing Requirements</th>
+                    <th class="table-header-cell">Manager</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="department in departments" :key="department.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 dark:bg-blue-900">
+                          <i class="fas fa-sitemap text-blue-600 text-sm dark:text-blue-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ department.name }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ department.location || 'No location specified' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ department.building?.name || 'Unknown' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        <div>Day: {{ department.required_porters_day || 0 }}</div>
+                        <div>Evening: {{ department.required_porters_evening || 0 }}</div>
+                        <div>Night: {{ department.required_porters_night || 0 }}</div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div v-if="department.manager_name" class="text-sm text-gray-900 dark:text-white">
+                        {{ department.manager_name }}
+                        <div v-if="department.contact_phone" class="text-sm text-gray-500 dark:text-gray-400">
+                          {{ department.contact_phone }}
+                        </div>
+                      </div>
+                      <div v-else class="text-sm text-gray-500 dark:text-gray-400">No manager assigned</div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        department.status === 'ACTIVE' ? 'badge-success' :
+                        department.status === 'INACTIVE' ? 'badge-secondary' :
+                        'badge-warning'
+                      ]">
+                        {{ department.status }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editDepartment(department)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteDepartment(department)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="departments.length === 0">
+                    <td colspan="6" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No departments found. Click "Add Department" to create your first department.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -179,6 +251,24 @@
         @cancel="closeBuildingModal"
       />
     </ModernModal>
+
+    <!-- Department Modal -->
+    <ModernModal
+      v-if="showDepartmentModal"
+      :show="showDepartmentModal"
+      :title="editingDepartment ? 'Edit Department' : 'Add Department'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeDepartmentModal"
+      @save="saveDepartmentModal"
+    >
+      <ModernDepartmentForm
+        ref="departmentFormRef"
+        :department="editingDepartment"
+        :buildings="buildings"
+        @submit="handleDepartmentSubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -186,6 +276,7 @@
 import { ref, computed, onMounted } from 'vue'
 import ModernModal from './ModernModal.vue'
 import ModernBuildingForm from './ModernBuildingForm.vue'
+import ModernDepartmentForm from './ModernDepartmentForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -201,8 +292,11 @@ const settings = ref([])
 
 const showBuildingModal = ref(false)
 const editingBuilding = ref(null)
+const showDepartmentModal = ref(false)
+const editingDepartment = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
+const departmentFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -231,6 +325,18 @@ const fetchBuildings = async () => {
     }
   } catch (error) {
     console.error('Error fetching buildings:', error)
+  }
+}
+
+const fetchDepartments = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/departments')
+    if (response.ok) {
+      const data = await response.json()
+      departments.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching departments:', error)
   }
 }
 
@@ -304,12 +410,87 @@ const deleteBuilding = async (building) => {
 }
 
 const openDepartmentModal = () => {
-  // TODO: Implement department modal
-  alert('Department management coming soon!')
+  editingDepartment.value = null
+  showDepartmentModal.value = true
+}
+
+const closeDepartmentModal = () => {
+  showDepartmentModal.value = false
+  editingDepartment.value = null
+  if (departmentFormRef.value) {
+    departmentFormRef.value.resetForm()
+  }
+}
+
+const editDepartment = (department) => {
+  editingDepartment.value = department
+  showDepartmentModal.value = true
+}
+
+const saveDepartmentModal = () => {
+  if (departmentFormRef.value) {
+    departmentFormRef.value.handleSubmit()
+  }
+}
+
+const handleDepartmentSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingDepartment.value
+      ? `http://localhost:3001/api/departments/${editingDepartment.value.id}`
+      : 'http://localhost:3001/api/departments'
+
+    const method = editingDepartment.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchDepartments()
+      closeDepartmentModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save department'}`)
+    }
+  } catch (error) {
+    console.error('Error saving department:', error)
+    alert('Failed to save department')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteDepartment = async (department) => {
+  if (!confirm(`Are you sure you want to delete "${department.name}"?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/departments/${department.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchDepartments()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete department'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting department:', error)
+    alert('Failed to delete department')
+  }
 }
 
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
+  fetchDepartments()
 })
 </script>
