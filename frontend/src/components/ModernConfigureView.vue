@@ -508,8 +508,116 @@
         </div>
       </div>
 
+      <!-- Capabilities Tab -->
+      <div v-if="activeTab === 'capabilities'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Capabilities</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Manage porter capabilities and certifications</p>
+          </div>
+          <button @click="openCapabilityModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Capability
+          </button>
+        </div>
+
+        <!-- Capabilities Table -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Capability</th>
+                    <th class="table-header-cell">Category</th>
+                    <th class="table-header-cell">Certification</th>
+                    <th class="table-header-cell">Risk Level</th>
+                    <th class="table-header-cell">Training</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="capability in capabilities" :key="capability.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3 dark:bg-green-900">
+                          <i class="fas fa-certificate text-green-600 text-sm dark:text-green-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ capability.name }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ capability.description || 'No description' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ capability.category?.replace('_', ' ') || 'General' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        capability.certification_required === 'PROFESSIONAL' ? 'badge-danger' :
+                        capability.certification_required === 'ADVANCED' ? 'badge-warning' :
+                        capability.certification_required === 'INTERMEDIATE' ? 'badge-info' :
+                        capability.certification_required === 'BASIC' ? 'badge-secondary' :
+                        'badge-success'
+                      ]">
+                        {{ capability.certification_required?.replace('_', ' ') || 'None' }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        capability.risk_level === 'CRITICAL' ? 'badge-danger' :
+                        capability.risk_level === 'HIGH' ? 'badge-warning' :
+                        capability.risk_level === 'MEDIUM' ? 'badge-info' :
+                        'badge-success'
+                      ]">
+                        {{ capability.risk_level }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        <div>{{ capability.training_hours || 0 }}h training</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ capability.renewal_period || 12 }}mo renewal</div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        capability.status === 'ACTIVE' ? 'badge-success' :
+                        capability.status === 'INACTIVE' ? 'badge-secondary' :
+                        capability.status === 'UNDER_REVIEW' ? 'badge-warning' :
+                        'badge-secondary'
+                      ]">
+                        {{ capability.status?.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editCapability(capability)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteCapability(capability)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="capabilities.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No capabilities found. Click "Add Capability" to create your first capability.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts'].includes(activeTab)" class="space-y-6">
+      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts', 'capabilities'].includes(activeTab)" class="space-y-6">
         <div class="card">
           <div class="card-body">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
@@ -608,6 +716,23 @@
         @submit="handleShiftPatternSubmit"
       />
     </ModernModal>
+
+    <!-- Capability Modal -->
+    <ModernModal
+      v-if="showCapabilityModal"
+      :show="showCapabilityModal"
+      :title="editingCapability ? 'Edit Capability' : 'Add Capability'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeCapabilityModal"
+      @save="saveCapabilityModal"
+    >
+      <ModernCapabilityForm
+        ref="capabilityFormRef"
+        :capability="editingCapability"
+        @submit="handleCapabilitySubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -619,6 +744,7 @@ import ModernDepartmentForm from './ModernDepartmentForm.vue'
 import ModernPorterForm from './ModernPorterForm.vue'
 import ModernServiceForm from './ModernServiceForm.vue'
 import ModernShiftPatternForm from './ModernShiftPatternForm.vue'
+import ModernCapabilityForm from './ModernCapabilityForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -642,12 +768,15 @@ const showServiceModal = ref(false)
 const editingService = ref(null)
 const showShiftPatternModal = ref(false)
 const editingShiftPattern = ref(null)
+const showCapabilityModal = ref(false)
+const editingCapability = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
 const porterFormRef = ref(null)
 const serviceFormRef = ref(null)
 const shiftPatternFormRef = ref(null)
+const capabilityFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -724,6 +853,18 @@ const fetchShiftPatterns = async () => {
     }
   } catch (error) {
     console.error('Error fetching shift patterns:', error)
+  }
+}
+
+const fetchCapabilities = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/capabilities')
+    if (response.ok) {
+      const data = await response.json()
+      capabilities.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching capabilities:', error)
   }
 }
 
@@ -1112,6 +1253,85 @@ const deleteShiftPattern = async (pattern) => {
   }
 }
 
+const openCapabilityModal = () => {
+  editingCapability.value = null
+  showCapabilityModal.value = true
+}
+
+const closeCapabilityModal = () => {
+  showCapabilityModal.value = false
+  editingCapability.value = null
+  if (capabilityFormRef.value) {
+    capabilityFormRef.value.resetForm()
+  }
+}
+
+const editCapability = (capability) => {
+  editingCapability.value = capability
+  showCapabilityModal.value = true
+}
+
+const saveCapabilityModal = () => {
+  if (capabilityFormRef.value) {
+    capabilityFormRef.value.handleSubmit()
+  }
+}
+
+const handleCapabilitySubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingCapability.value
+      ? `http://localhost:3001/api/capabilities/${editingCapability.value.id}`
+      : 'http://localhost:3001/api/capabilities'
+
+    const method = editingCapability.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchCapabilities()
+      closeCapabilityModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save capability'}`)
+    }
+  } catch (error) {
+    console.error('Error saving capability:', error)
+    alert('Failed to save capability')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteCapability = async (capability) => {
+  if (!confirm(`Are you sure you want to delete "${capability.name}"?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/capabilities/${capability.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchCapabilities()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete capability'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting capability:', error)
+    alert('Failed to delete capability')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
@@ -1119,5 +1339,6 @@ onMounted(() => {
   fetchPorters()
   fetchServices()
   fetchShiftPatterns()
+  fetchCapabilities()
 })
 </script>
