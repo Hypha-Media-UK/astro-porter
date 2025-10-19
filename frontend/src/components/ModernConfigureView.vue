@@ -725,14 +725,128 @@
         </div>
       </div>
 
-      <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments', 'porters', 'services', 'shifts', 'capabilities', 'allocations'].includes(activeTab)" class="space-y-6">
+      <!-- Availability Tab -->
+      <div v-if="activeTab === 'availability'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Availability</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Manage porter availability and scheduling preferences</p>
+          </div>
+          <button @click="openAvailabilityModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Availability
+          </button>
+        </div>
+
+        <!-- Availability Table -->
         <div class="card">
-          <div class="card-body">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
-            <p class="text-gray-500 dark:text-gray-400">This section is under development.</p>
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Porter</th>
+                    <th class="table-header-cell">Type</th>
+                    <th class="table-header-cell">Date Range</th>
+                    <th class="table-header-cell">Time Range</th>
+                    <th class="table-header-cell">Days</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="availability in availabilities" :key="availability.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3 dark:bg-indigo-900">
+                          <i class="fas fa-calendar-check text-indigo-600 text-sm dark:text-indigo-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ availability.porter?.name || 'Unknown' }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ availability.porter?.employee_id || 'N/A' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        availability.availability_type === 'AVAILABLE' ? 'badge-success' :
+                        availability.availability_type === 'UNAVAILABLE' ? 'badge-danger' :
+                        availability.availability_type === 'PREFERRED' ? 'badge-info' :
+                        availability.availability_type === 'LIMITED' ? 'badge-warning' :
+                        'badge-secondary'
+                      ]">
+                        {{ availability.availability_type?.replace('_', ' ') || 'Available' }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ availability.start_date || 'No start' }}</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">{{ availability.end_date || 'Ongoing' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ availability.start_time || 'All day' }} {{ availability.end_time ? '- ' + availability.end_time : '' }}
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ (availability.days_of_week || []).length }} days/week
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        availability.status === 'APPROVED' ? 'badge-success' :
+                        availability.status === 'PENDING' ? 'badge-warning' :
+                        availability.status === 'REJECTED' ? 'badge-danger' :
+                        availability.status === 'CANCELLED' ? 'badge-secondary' :
+                        'badge-info'
+                      ]">
+                        {{ availability.status }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editAvailability(availability)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteAvailability(availability)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="availabilities.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No availability records found. Click "Add Availability" to create your first record.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div v-if="activeTab === 'settings'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">System Settings</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Configure system-wide settings and preferences</p>
+          </div>
+          <button @click="saveSettings()" class="btn-primary" :disabled="isSubmitting">
+            <i class="fas fa-save mr-2"></i>
+            {{ isSubmitting ? 'Saving...' : 'Save Settings' }}
+          </button>
+        </div>
+
+        <!-- Settings Form -->
+        <ModernSettingsForm
+          ref="settingsFormRef"
+          :settings="systemSettings"
+          @submit="handleSettingsSubmit"
+        />
       </div>
     </div>
 
@@ -863,6 +977,25 @@
         @submit="handleAllocationSubmit"
       />
     </ModernModal>
+
+    <!-- Availability Modal -->
+    <ModernModal
+      v-if="showAvailabilityModal"
+      :show="showAvailabilityModal"
+      :title="editingAvailability ? 'Edit Availability' : 'Add Availability'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closeAvailabilityModal"
+      @save="saveAvailabilityModal"
+    >
+      <ModernAvailabilityForm
+        ref="availabilityFormRef"
+        :availability="editingAvailability"
+        :porters="porters"
+        :departments="departments"
+        @submit="handleAvailabilitySubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -876,6 +1009,8 @@ import ModernServiceForm from './ModernServiceForm.vue'
 import ModernShiftPatternForm from './ModernShiftPatternForm.vue'
 import ModernCapabilityForm from './ModernCapabilityForm.vue'
 import ModernAllocationForm from './ModernAllocationForm.vue'
+import ModernAvailabilityForm from './ModernAvailabilityForm.vue'
+import ModernSettingsForm from './ModernSettingsForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -903,6 +1038,8 @@ const showCapabilityModal = ref(false)
 const editingCapability = ref(null)
 const showAllocationModal = ref(false)
 const editingAllocation = ref(null)
+const showAvailabilityModal = ref(false)
+const editingAvailability = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
@@ -911,6 +1048,9 @@ const serviceFormRef = ref(null)
 const shiftPatternFormRef = ref(null)
 const capabilityFormRef = ref(null)
 const allocationFormRef = ref(null)
+const availabilityFormRef = ref(null)
+const settingsFormRef = ref(null)
+const systemSettings = ref({})
 
 // Tab configuration
 const tabs = computed(() => [
@@ -1011,6 +1151,30 @@ const fetchAllocations = async () => {
     }
   } catch (error) {
     console.error('Error fetching allocations:', error)
+  }
+}
+
+const fetchAvailabilities = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/availabilities')
+    if (response.ok) {
+      const data = await response.json()
+      availabilities.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching availabilities:', error)
+  }
+}
+
+const fetchSettings = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/settings')
+    if (response.ok) {
+      const data = await response.json()
+      systemSettings.value = data.data || {}
+    }
+  } catch (error) {
+    console.error('Error fetching settings:', error)
   }
 }
 
@@ -1557,6 +1721,118 @@ const deleteAllocation = async (allocation) => {
   }
 }
 
+const openAvailabilityModal = () => {
+  editingAvailability.value = null
+  showAvailabilityModal.value = true
+}
+
+const closeAvailabilityModal = () => {
+  showAvailabilityModal.value = false
+  editingAvailability.value = null
+  if (availabilityFormRef.value) {
+    availabilityFormRef.value.resetForm()
+  }
+}
+
+const editAvailability = (availability) => {
+  editingAvailability.value = availability
+  showAvailabilityModal.value = true
+}
+
+const saveAvailabilityModal = () => {
+  if (availabilityFormRef.value) {
+    availabilityFormRef.value.handleSubmit()
+  }
+}
+
+const handleAvailabilitySubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingAvailability.value
+      ? `http://localhost:3001/api/availabilities/${editingAvailability.value.id}`
+      : 'http://localhost:3001/api/availabilities'
+
+    const method = editingAvailability.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchAvailabilities()
+      closeAvailabilityModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save availability'}`)
+    }
+  } catch (error) {
+    console.error('Error saving availability:', error)
+    alert('Failed to save availability')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deleteAvailability = async (availability) => {
+  if (!confirm(`Are you sure you want to delete this availability record?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/availabilities/${availability.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchAvailabilities()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete availability'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting availability:', error)
+    alert('Failed to delete availability')
+  }
+}
+
+const saveSettings = () => {
+  if (settingsFormRef.value) {
+    settingsFormRef.value.handleSubmit()
+  }
+}
+
+const handleSettingsSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const response = await fetch('http://localhost:3001/api/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchSettings()
+      alert('Settings saved successfully!')
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save settings'}`)
+    }
+  } catch (error) {
+    console.error('Error saving settings:', error)
+    alert('Failed to save settings')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
@@ -1566,5 +1842,7 @@ onMounted(() => {
   fetchShiftPatterns()
   fetchCapabilities()
   fetchAllocations()
+  fetchAvailabilities()
+  fetchSettings()
 })
 </script>
