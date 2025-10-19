@@ -1156,35 +1156,11 @@ const fetchAllocations = async () => {
 
 const fetchAvailabilities = async () => {
   try {
-    // For now, use mock data since the API endpoint doesn't exist yet
-    availabilities.value = [
-      {
-        id: '1',
-        porter_id: 'porter1',
-        porter: { name: 'John Smith', employee_id: 'EMP001' },
-        availability_type: 'AVAILABLE',
-        start_date: '2024-01-15',
-        end_date: '2024-01-20',
-        start_time: '07:00',
-        end_time: '15:00',
-        days_of_week: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-        recurring_pattern: 'WEEKLY',
-        status: 'APPROVED'
-      },
-      {
-        id: '2',
-        porter_id: 'porter2',
-        porter: { name: 'Sarah Johnson', employee_id: 'EMP002' },
-        availability_type: 'UNAVAILABLE',
-        start_date: '2024-01-22',
-        end_date: '2024-01-26',
-        start_time: '',
-        end_time: '',
-        days_of_week: [],
-        recurring_pattern: 'NONE',
-        status: 'PENDING'
-      }
-    ]
+    const response = await fetch('http://localhost:3001/api/availability')
+    if (response.ok) {
+      const data = await response.json()
+      availabilities.value = data.data || []
+    }
   } catch (error) {
     console.error('Error fetching availabilities:', error)
   }
@@ -1795,8 +1771,8 @@ const handleAvailabilitySubmit = async (formData) => {
 
   try {
     const url = editingAvailability.value
-      ? `http://localhost:3001/api/availabilities/${editingAvailability.value.id}`
-      : 'http://localhost:3001/api/availabilities'
+      ? `http://localhost:3001/api/availability/${editingAvailability.value.id}`
+      : 'http://localhost:3001/api/availability'
 
     const method = editingAvailability.value ? 'PUT' : 'POST'
 
@@ -1829,7 +1805,7 @@ const deleteAvailability = async (availability) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:3001/api/availabilities/${availability.id}`, {
+    const response = await fetch(`http://localhost:3001/api/availability/${availability.id}`, {
       method: 'DELETE'
     })
 
