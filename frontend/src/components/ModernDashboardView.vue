@@ -239,8 +239,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 const loading = ref(false)
 const coverage = ref([])
 const buildings = ref([])
-const selectedDate = ref(new Date().toISOString().split('T')[0])
-const selectedTime = ref(new Date().toTimeString().slice(0, 5))
+const selectedDate = ref('')
+const selectedTime = ref('')
 const selectedBuilding = ref('')
 const activeTimeView = ref('current')
 const isDragOver = ref(false)
@@ -259,6 +259,11 @@ let refreshInterval = null
 
 // Computed properties
 const currentDateTime = computed(() => {
+  // Only show time on client-side to avoid hydration mismatch
+  if (typeof window === 'undefined') {
+    return 'Loading...'
+  }
+
   const now = new Date()
   return now.toLocaleString('en-GB', {
     weekday: 'long',
@@ -397,9 +402,14 @@ const getPorterStatusText = (porter) => {
 
 // Lifecycle
 onMounted(() => {
+  // Initialize date/time values on client-side to avoid hydration mismatch
+  const now = new Date()
+  selectedDate.value = now.toISOString().split('T')[0]
+  selectedTime.value = now.toTimeString().slice(0, 5)
+
   fetchBuildings()
   fetchCoverageData()
-  
+
   // Set up auto-refresh every 5 minutes
   refreshInterval = setInterval(fetchCoverageData, 5 * 60 * 1000)
 })
