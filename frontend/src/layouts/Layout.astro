@@ -1,0 +1,45 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Porter Shift Management & Staffing System" } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <nav class="nav">
+          <a href="/" class="nav-brand">Porter Management</a>
+          <ul class="nav-links">
+            <li><a href="/" class={`nav-link ${currentPath === '/' ? 'nav-link-active' : ''}`}>Dashboard</a></li>
+            <li><a href="/configure" class={`nav-link ${currentPath === '/configure' ? 'nav-link-active' : ''}`}>Configure</a></li>
+            <li><a href="/reports" class={`nav-link ${currentPath === '/reports' ? 'nav-link-active' : ''}`}>Reports</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    
+    <main class="main-content">
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    
+    <style>
+      /* Import global styles */
+      @import '../styles/global.css';
+    </style>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "porter-management-frontend",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Frontend for Porter Shift Management System",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "astro": "^4.15.0",
+    "@astrojs/vue": "^4.5.2",
+    "vue": "^3.4.0",
+    "zod": "^3.22.4",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "vitest": "^0.34.6",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "@vue/test-utils": "^2.4.0"
+  },
+  "keywords": [
+    "porter",
+    "shift",
+    "management",
+    "astro",
+    "vue"
+  ],
+  "author": "Porter Management Team",
+  "license": "MIT"
+}
