@@ -257,15 +257,13 @@ const timeViews = [
 // Auto-refresh interval
 let refreshInterval = null
 
-// Computed properties
-const currentDateTime = computed(() => {
-  // Only show time on client-side to avoid hydration mismatch
-  if (typeof window === 'undefined') {
-    return 'Loading...'
-  }
+// Current date time as a ref to avoid hydration mismatch
+const currentDateTime = ref('Loading...')
 
+// Function to update current date time
+const updateCurrentDateTime = () => {
   const now = new Date()
-  return now.toLocaleString('en-GB', {
+  currentDateTime.value = now.toLocaleString('en-GB', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -273,7 +271,7 @@ const currentDateTime = computed(() => {
     hour: '2-digit',
     minute: '2-digit'
   })
-})
+}
 
 const totalDepartments = computed(() => coverage.value.length)
 
@@ -402,6 +400,9 @@ const getPorterStatusText = (porter) => {
 
 // Lifecycle
 onMounted(() => {
+  // Initialize current date time on client side to avoid hydration mismatch
+  updateCurrentDateTime()
+
   // Initialize date/time values on client-side to avoid hydration mismatch
   const now = new Date()
   selectedDate.value = now.toISOString().split('T')[0]
@@ -411,7 +412,10 @@ onMounted(() => {
   fetchCoverageData()
 
   // Set up auto-refresh every 5 minutes
-  refreshInterval = setInterval(fetchCoverageData, 5 * 60 * 1000)
+  refreshInterval = setInterval(() => {
+    fetchCoverageData()
+    updateCurrentDateTime() // Also update the time display
+  }, 5 * 60 * 1000)
 })
 
 onUnmounted(() => {
