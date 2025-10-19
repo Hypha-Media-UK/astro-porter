@@ -223,8 +223,100 @@
         </div>
       </div>
 
+      <!-- Porters Tab -->
+      <div v-if="activeTab === 'porters'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Porters</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Manage hospital porters and their assignments</p>
+          </div>
+          <button @click="openPorterModal()" class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Add Porter
+          </button>
+        </div>
+
+        <!-- Porters Table -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table-header-cell">Porter</th>
+                    <th class="table-header-cell">Type</th>
+                    <th class="table-header-cell">Contract</th>
+                    <th class="table-header-cell">Department</th>
+                    <th class="table-header-cell">Contact</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  <tr v-for="porter in porters" :key="porter.id" class="table-row">
+                    <td class="table-cell">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3 dark:bg-green-900">
+                          <i class="fas fa-user text-green-600 text-sm dark:text-green-300"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ porter.name }}</div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">{{ porter.employee_id || 'No ID' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ porter.porter_type?.replace('_', ' ') || 'General' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ porter.contract_type?.replace('_', ' ') || 'Unknown' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div class="text-sm text-gray-900 dark:text-white">{{ porter.regularDepartment?.name || 'Unassigned' }}</div>
+                    </td>
+                    <td class="table-cell">
+                      <div v-if="porter.email || porter.phone" class="text-sm text-gray-900 dark:text-white">
+                        <div v-if="porter.email">{{ porter.email }}</div>
+                        <div v-if="porter.phone" class="text-sm text-gray-500 dark:text-gray-400">{{ porter.phone }}</div>
+                      </div>
+                      <div v-else class="text-sm text-gray-500 dark:text-gray-400">No contact info</div>
+                    </td>
+                    <td class="table-cell">
+                      <span :class="[
+                        'badge',
+                        porter.status === 'ACTIVE' ? 'badge-success' :
+                        porter.status === 'INACTIVE' ? 'badge-secondary' :
+                        porter.status === 'ON_LEAVE' ? 'badge-warning' :
+                        'badge-danger'
+                      ]">
+                        {{ porter.status?.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="table-cell">
+                      <div class="flex items-center space-x-2">
+                        <button @click="editPorter(porter)" class="btn-secondary btn-sm">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deletePorter(porter)" class="btn-danger btn-sm">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="porters.length === 0">
+                    <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
+                      No porters found. Click "Add Porter" to create your first porter.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Other tabs placeholder -->
-      <div v-if="!['buildings', 'departments'].includes(activeTab)" class="space-y-6">
+      <div v-if="!['buildings', 'departments', 'porters'].includes(activeTab)" class="space-y-6">
         <div class="card">
           <div class="card-body">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ getCurrentTab()?.label }}</h3>
@@ -269,6 +361,25 @@
         @submit="handleDepartmentSubmit"
       />
     </ModernModal>
+
+    <!-- Porter Modal -->
+    <ModernModal
+      v-if="showPorterModal"
+      :show="showPorterModal"
+      :title="editingPorter ? 'Edit Porter' : 'Add Porter'"
+      size="lg"
+      :saving="isSubmitting"
+      @close="closePorterModal"
+      @save="savePorterModal"
+    >
+      <ModernPorterForm
+        ref="porterFormRef"
+        :porter="editingPorter"
+        :departments="departments"
+        :shift-patterns="shifts"
+        @submit="handlePorterSubmit"
+      />
+    </ModernModal>
   </div>
 </template>
 
@@ -277,6 +388,7 @@ import { ref, computed, onMounted } from 'vue'
 import ModernModal from './ModernModal.vue'
 import ModernBuildingForm from './ModernBuildingForm.vue'
 import ModernDepartmentForm from './ModernDepartmentForm.vue'
+import ModernPorterForm from './ModernPorterForm.vue'
 
 // Reactive data
 const activeTab = ref('buildings')
@@ -294,9 +406,12 @@ const showBuildingModal = ref(false)
 const editingBuilding = ref(null)
 const showDepartmentModal = ref(false)
 const editingDepartment = ref(null)
+const showPorterModal = ref(false)
+const editingPorter = ref(null)
 const isSubmitting = ref(false)
 const buildingFormRef = ref(null)
 const departmentFormRef = ref(null)
+const porterFormRef = ref(null)
 
 // Tab configuration
 const tabs = computed(() => [
@@ -337,6 +452,18 @@ const fetchDepartments = async () => {
     }
   } catch (error) {
     console.error('Error fetching departments:', error)
+  }
+}
+
+const fetchPorters = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/porters')
+    if (response.ok) {
+      const data = await response.json()
+      porters.value = data.data || []
+    }
+  } catch (error) {
+    console.error('Error fetching porters:', error)
   }
 }
 
@@ -488,9 +615,89 @@ const deleteDepartment = async (department) => {
   }
 }
 
+const openPorterModal = () => {
+  editingPorter.value = null
+  showPorterModal.value = true
+}
+
+const closePorterModal = () => {
+  showPorterModal.value = false
+  editingPorter.value = null
+  if (porterFormRef.value) {
+    porterFormRef.value.resetForm()
+  }
+}
+
+const editPorter = (porter) => {
+  editingPorter.value = porter
+  showPorterModal.value = true
+}
+
+const savePorterModal = () => {
+  if (porterFormRef.value) {
+    porterFormRef.value.handleSubmit()
+  }
+}
+
+const handlePorterSubmit = async (formData) => {
+  isSubmitting.value = true
+
+  try {
+    const url = editingPorter.value
+      ? `http://localhost:3001/api/porters/${editingPorter.value.id}`
+      : 'http://localhost:3001/api/porters'
+
+    const method = editingPorter.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+
+    if (response.ok) {
+      await fetchPorters()
+      closePorterModal()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to save porter'}`)
+    }
+  } catch (error) {
+    console.error('Error saving porter:', error)
+    alert('Failed to save porter')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const deletePorter = async (porter) => {
+  if (!confirm(`Are you sure you want to delete "${porter.name}"?`)) {
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/porters/${porter.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.ok) {
+      await fetchPorters()
+    } else {
+      const error = await response.json()
+      alert(`Error: ${error.error || 'Failed to delete porter'}`)
+    }
+  } catch (error) {
+    console.error('Error deleting porter:', error)
+    alert('Failed to delete porter')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchBuildings()
   fetchDepartments()
+  fetchPorters()
 })
 </script>
