@@ -146,6 +146,8 @@ async function main() {
     { name: 'Simon Collins', type: 'Relief', shift: '', department: '', service: '' },
     { name: 'Mark Walton', type: 'General', shift: '', department: '', service: '', hours: '06:00 - 14:00', days: 'Weds-Sun' },
     { name: 'Allen Butler', type: 'General', shift: '', department: '', service: '' },
+    { name: 'Steven Richardson', type: 'Relief', shift: '4 on 4 off', department: '', service: '' },
+    { name: 'Simon Collins', type: 'General', shift: '', department: '', service: '' },
     { name: 'Darren Flowers', type: 'General', shift: '4 on 4 off (Night)', department: '', service: '', hours: '09:00 - 17:00' },
     { name: 'Brian Cassidy', type: 'General', shift: '4 on 4 off (Night)', department: '', service: '' },
     { name: 'Karen Blackett', type: 'General', shift: '4 on 4 off (Night)', department: '', service: '' },
@@ -188,6 +190,7 @@ async function main() {
     { name: 'Phil Hollinshead', type: 'General', shift: '', department: 'L/G/F Xray', service: '' },
     { name: 'Kevin Tomlinson', type: 'General', shift: '', department: '', service: '', hours: '12:00 - 20:00', days: 'Mon-Fri' },
     { name: 'Soloman Offei', type: 'General', shift: '', department: '', service: '' },
+    { name: 'Colin Bromley', type: 'Relief', shift: '', department: '', service: '' },
     { name: 'Lynne Warner', type: 'General', shift: '', department: '', service: 'Patient Transport', hours: '12:00 - 20:00', days: 'Mon-Fri' },
     { name: 'Roy Harris', type: 'General', shift: '', department: '', service: 'Patient Transport', hours: '12:00 - 20:00', days: 'Mon-Fri' },
     { name: 'Kyle Sanderson', type: 'General', shift: '', department: '', service: 'Medical Records', days: 'Mon-Fri' },
@@ -223,18 +226,12 @@ async function main() {
   for (let i = 0; i < porterData.length; i++) {
     const porter = porterData[i];
 
-    // Find service if specified
-    let serviceId = null;
-    if (porter.service) {
-      const service = services.find(s => s.name === porter.service);
-      if (service) serviceId = service.id;
+    // Find department if specified
+    let regularDepartmentId = null;
+    if (porter.department) {
+      const department = departments.find(d => d.name === porter.department);
+      if (department) regularDepartmentId = department.id;
     }
-
-    // Generate employee ID
-    const employeeId = `POR${String(i + 1).padStart(3, '0')}`;
-
-    // Generate email
-    const email = `${porter.name.toLowerCase().replace(/\s+/g, '.')}.${employeeId.toLowerCase()}@hospital.nhs.uk`;
 
     const porterRecord = await prisma.porter.create({
       data: {
@@ -244,13 +241,46 @@ async function main() {
         porterType: porter.type === 'Supervisor' ? 'SUPERVISOR' : 'PORTER',
         weeklyMinHours: porter.type === 'Relief' ? 20 : 37,
         contractedHours: porter.type === 'Relief' ? 20 : 37,
-        countsTowardsStaffing: porter.type !== 'Relief'
+        countsTowardsStaffing: porter.type !== 'Relief',
+        regularDepartmentId: regularDepartmentId
       }
     });
     porters.push(porterRecord);
   }
 
   console.log(`✅ Created ${porters.length} porters`);
+
+  // Create allocations for porters assigned to services
+  console.log('📋 Creating service allocations...');
+  const allocations = [];
+  for (let i = 0; i < porterData.length; i++) {
+    const porter = porterData[i];
+    const porterRecord = porters[i];
+
+    if (porter.service) {
+      const service = services.find(s => s.name === porter.service);
+      if (service) {
+        // Find the department for this service
+        const serviceDepartment = departments.find(d => d.id === service.departmentId);
+        if (serviceDepartment) {
+          const allocation = await prisma.allocation.create({
+            data: {
+              porterId: porterRecord.id,
+              departmentId: serviceDepartment.id,
+              serviceId: service.id,
+              startDatetime: new Date('2024-01-01T08:00:00Z'),
+              endDatetime: null, // Ongoing allocation
+              type: porter.type === 'Relief' ? 'RELIEF' : 'REGULAR',
+              reason: `Assigned to ${porter.service} service${porter.hours ? ` - ${porter.hours}` : ''}${porter.days ? ` - ${porter.days}` : ''}`
+            }
+          });
+          allocations.push(allocation);
+        }
+      }
+    }
+  }
+
+  console.log(`✅ Created ${allocations.length} service allocations`);
 
   console.log('🎉 Database seeding completed successfully!');
   console.log(`
@@ -259,6 +289,7 @@ async function main() {
 - Buildings: ${buildings.length}
 - Departments: ${departments.length}
 - Porters: ${porters.length}
+- Service Allocations: ${allocations.length}
   `);
 }
 
