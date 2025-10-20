@@ -445,7 +445,7 @@
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                  <tr v-for="pattern in shifts" :key="pattern.id" class="table-row">
+                  <tr v-for="pattern in shiftPatterns" :key="pattern.id" class="table-row">
                     <td class="table-cell">
                       <div class="flex items-center">
                         <div
@@ -496,7 +496,7 @@
                       </div>
                     </td>
                   </tr>
-                  <tr v-if="shifts.length === 0">
+                  <tr v-if="shiftPatterns.length === 0">
                     <td colspan="7" class="table-cell text-center text-gray-500 dark:text-gray-400">
                       No shift patterns found. Click "Add Shift Pattern" to create your first pattern.
                     </td>
@@ -900,7 +900,7 @@
         ref="porterFormRef"
         :porter="editingPorter"
         :departments="departments"
-        :shift-patterns="shifts"
+        :shift-patterns="shiftPatterns"
         @submit="handlePorterSubmit"
       />
     </ModernModal>
@@ -973,7 +973,7 @@
         :porters="porters"
         :departments="departments"
         :services="services"
-        :shift-patterns="shifts"
+        :shift-patterns="shiftPatterns"
         @submit="handleAllocationSubmit"
       />
     </ModernModal>
@@ -1058,10 +1058,10 @@ const tabs = computed(() => [
   { id: 'departments', label: 'Departments', icon: 'fas fa-sitemap', count: departments.value.length },
   { id: 'services', label: 'Services', icon: 'fas fa-concierge-bell', count: services.value.length },
   { id: 'porters', label: 'Porters', icon: 'fas fa-users', count: porters.value.length },
-  { id: 'shifts', label: 'Shift Patterns', icon: 'fas fa-clock', count: shifts.value.length },
+  { id: 'shifts', label: 'Shift Patterns', icon: 'fas fa-clock', count: shiftPatterns.value.length },
   { id: 'capabilities', label: 'Capabilities', icon: 'fas fa-certificate', count: capabilities.value.length },
   { id: 'allocations', label: 'Allocations', icon: 'fas fa-user-check', count: allocations.value.length },
-  { id: 'availability', label: 'Availability', icon: 'fas fa-calendar-check', count: availability.value.length },
+  { id: 'availability', label: 'Availability', icon: 'fas fa-calendar-check', count: availabilities.value.length },
   { id: 'settings', label: 'Settings', icon: 'fas fa-cog' }
 ])
 
@@ -1123,7 +1123,7 @@ const fetchShiftPatterns = async () => {
     const response = await fetch('http://localhost:3001/api/shift-patterns')
     if (response.ok) {
       const data = await response.json()
-      shifts.value = data.data || []
+      shiftPatterns.value = data.data || []
     }
   } catch (error) {
     console.error('Error fetching shift patterns:', error)
