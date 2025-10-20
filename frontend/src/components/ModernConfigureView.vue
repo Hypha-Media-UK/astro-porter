@@ -1,50 +1,70 @@
 <template>
-  <div class="configure-view">
-    <!-- Tab Navigation -->
-    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
-      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          :class="[
-            'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
-            activeTab === tab.id
-              ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-          ]"
-        >
-          <i :class="tab.icon" class="mr-2"></i>
-          {{ tab.label }}
-          <span v-if="tab.count !== undefined" class="ml-2 badge badge-secondary">
-            {{ tab.count }}
-          </span>
+  <div class="configure-view space-y-8">
+    <!-- Modern Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Configuration</h1>
+        <p class="text-slate-600 dark:text-slate-400 mt-1">Manage system settings, staff, and organizational structure</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="exportData" class="btn-secondary btn-sm">
+          <i class="fas fa-download"></i>
+          Export
         </button>
-      </nav>
+        <button @click="importData" class="btn-secondary btn-sm">
+          <i class="fas fa-upload"></i>
+          Import
+        </button>
+      </div>
     </div>
 
-    <!-- Tab Content -->
+    <!-- Modern Tab Navigation -->
+    <div class="card-elevated">
+      <div class="p-1">
+        <nav class="flex flex-wrap gap-1" aria-label="Tabs">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            :class="[
+              'flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
+              activeTab === tab.id
+                ? 'bg-blue-50 text-blue-700 shadow-sm dark:bg-blue-500/10 dark:text-blue-400'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
+            ]"
+          >
+            <i :class="tab.icon" class="text-sm"></i>
+            {{ tab.label }}
+            <span v-if="tab.count !== undefined" class="badge-primary text-xs">
+              {{ tab.count }}
+            </span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Modern Tab Content -->
     <div class="tab-content">
       <!-- Buildings Tab -->
-      <div v-if="activeTab === 'buildings'" class="space-y-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
+      <div v-if="activeTab === 'buildings'" class="space-y-6 animate-fade-in">
+        <!-- Section Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Buildings</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Manage hospital buildings and facilities</p>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Buildings</h2>
+            <p class="text-slate-600 dark:text-slate-400 mt-1">Manage hospital buildings and facilities</p>
           </div>
           <button @click="openBuildingModal()" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>
+            <i class="fas fa-plus"></i>
             Add Building
           </button>
         </div>
 
-        <!-- Buildings Table -->
-        <div class="card">
+        <!-- Modern Buildings Table -->
+        <div class="card-elevated">
           <div class="card-body p-0">
             <div class="overflow-x-auto">
               <table class="table">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+                <thead class="table-header">
                   <tr>
                     <th class="table-header-cell">Name</th>
                     <th class="table-header-cell">Address</th>

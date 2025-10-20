@@ -1,78 +1,95 @@
 <template>
-  <div class="dashboard">
-    <!-- Stats Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+  <div class="dashboard space-y-8">
+    <!-- Modern Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Dashboard</h1>
+        <p class="text-slate-600 dark:text-slate-400 mt-1">Real-time porter management and coverage overview</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-sm text-slate-500 dark:text-slate-400">{{ currentDateTime }}</div>
+        <button @click="refreshData" class="btn-secondary btn-sm">
+          <i class="fas fa-sync-alt"></i>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Modern Stats Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Total Departments -->
-      <div class="stats-card">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center dark:bg-primary-900">
-              <i class="fas fa-sitemap text-primary-600 dark:text-primary-300"></i>
-            </div>
-          </div>
-          <div class="ml-4">
+      <div class="stats-card group">
+        <div class="flex items-center justify-between">
+          <div>
             <p class="stats-label">Total Departments</p>
             <p class="stats-value">{{ totalDepartments }}</p>
+          </div>
+          <div class="stats-icon bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+            <i class="fas fa-sitemap"></i>
           </div>
         </div>
       </div>
 
       <!-- Fully Staffed -->
-      <div class="stats-card">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center dark:bg-green-900">
-              <i class="fas fa-check-circle text-green-600 dark:text-green-300"></i>
-            </div>
-          </div>
-          <div class="ml-4">
+      <div class="stats-card group">
+        <div class="flex items-center justify-between">
+          <div>
             <p class="stats-label">Fully Staffed</p>
-            <p class="stats-value text-green-600 dark:text-green-400">{{ statusCounts.good }}</p>
+            <p class="stats-value status-good">{{ statusCounts.good }}</p>
+          </div>
+          <div class="stats-icon bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+            <i class="fas fa-check-circle"></i>
           </div>
         </div>
       </div>
 
       <!-- Under-staffed -->
-      <div class="stats-card">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center dark:bg-yellow-900">
-              <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-300"></i>
-            </div>
-          </div>
-          <div class="ml-4">
+      <div class="stats-card group">
+        <div class="flex items-center justify-between">
+          <div>
             <p class="stats-label">Under-staffed</p>
-            <p class="stats-value text-yellow-600 dark:text-yellow-400">{{ statusCounts.warning }}</p>
+            <p class="stats-value status-warning">{{ statusCounts.warning }}</p>
+          </div>
+          <div class="stats-icon bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+            <i class="fas fa-exclamation-triangle"></i>
           </div>
         </div>
       </div>
 
       <!-- Critical -->
-      <div class="stats-card">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center dark:bg-red-900">
-              <i class="fas fa-times-circle text-red-600 dark:text-red-300"></i>
-            </div>
-          </div>
-          <div class="ml-4">
+      <div class="stats-card group">
+        <div class="flex items-center justify-between">
+          <div>
             <p class="stats-label">Critical</p>
-            <p class="stats-value text-red-600 dark:text-red-400">{{ statusCounts.critical }}</p>
+            <p class="stats-value status-critical">{{ statusCounts.critical }}</p>
+          </div>
+          <div class="stats-icon bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+            <i class="fas fa-times-circle"></i>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Time Navigation -->
-    <div class="card mb-6">
+    <!-- Modern Coverage Overview -->
+    <div class="card-elevated">
       <div class="card-header">
-        <h3 class="card-title">Coverage Overview</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ currentDateTime }}</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="card-title">Coverage Overview</h3>
+            <p class="card-subtitle">Real-time departmental staffing levels</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="status-badge good">
+              <i class="fas fa-circle text-xs"></i>
+              Live Data
+            </span>
+          </div>
+        </div>
       </div>
       <div class="card-body">
-        <!-- Time Navigation Tabs -->
-        <div class="time-nav mb-6">
-          <nav class="flex space-x-8" aria-label="Tabs">
+        <!-- Modern Time Navigation Tabs -->
+        <div class="time-nav mb-8">
+          <nav class="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl" aria-label="Tabs">
             <button
               v-for="timeView in timeViews"
               :key="timeView.id"

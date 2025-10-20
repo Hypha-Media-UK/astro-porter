@@ -7,10 +7,10 @@
     role="dialog"
     aria-modal="true"
   >
-    <!-- Background overlay -->
+    <!-- Modern Background overlay -->
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <div
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-all duration-300"
         aria-hidden="true"
         @click="closeModal"
       ></div>
@@ -18,19 +18,19 @@
       <!-- This element is to trick the browser into centering the modal contents. -->
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-      <!-- Modal panel -->
+      <!-- Modern Modal panel -->
       <div
-        class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 dark:bg-gray-800"
+        class="relative inline-block align-bottom glass rounded-2xl px-6 pt-6 pb-6 text-left overflow-hidden shadow-2xl transform transition-all duration-300 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200/60 dark:border-slate-800/60 animate-scale-in"
         :class="sizeClasses"
       >
-        <!-- Modal header -->
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
+        <!-- Modern Modal header -->
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight" id="modal-title">
             {{ title }}
           </h3>
           <button
             type="button"
-            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            class="text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-xl text-sm w-10 h-10 flex items-center justify-center transition-colors duration-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
             @click="closeModal"
           >
             <i class="fas fa-times"></i>
@@ -43,8 +43,8 @@
           <slot></slot>
         </div>
 
-        <!-- Modal footer -->
-        <div v-if="showFooter" class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+        <!-- Modern Modal footer -->
+        <div v-if="showFooter" class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-200/60 dark:border-slate-800/60">
           <button
             v-if="showCancelButton"
             type="button"
@@ -60,7 +60,7 @@
             :disabled="saveDisabled"
             @click="$emit('save')"
           >
-            <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
+            <i v-if="saving" class="fas fa-spinner fa-spin"></i>
             {{ saveText }}
           </button>
         </div>
