@@ -1,26 +1,8 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
-import ModernDashboardView from '../components/ModernDashboardView.vue';
+import AugmentDashboardView from '../components/AugmentDashboardView.vue';
 ---
 
 <AdminLayout title="Porter Management Dashboard">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Porter Management Dashboard</h1>
-    <p class="text-gray-600 dark:text-gray-400 mt-2">Real-time staffing overview across all buildings and departments</p>
-  </div>
-
-  <ModernDashboardView client:load />
+  <AugmentDashboardView client:load />
 </AdminLayout>
-
-<style>
-  .dashboard-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e9ecef;
-  }
-
-  .dashboard-header h1 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-  }
-</style>

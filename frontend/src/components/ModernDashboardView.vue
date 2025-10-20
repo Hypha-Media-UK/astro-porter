@@ -1,14 +1,14 @@
 <template>
-  <div class="dashboard space-y-8">
+  <div class="dashboard" style="display: flex; flex-direction: column; gap: var(--space-8);">
     <!-- Modern Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Dashboard</h1>
-        <p class="text-slate-600 dark:text-slate-400 mt-1">Real-time porter management and coverage overview</p>
+        <h1 style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); line-height: var(--line-height-tight);">Dashboard</h1>
+        <p style="color: var(--color-text-secondary); margin-top: var(--space-1);">Real-time porter management and coverage overview</p>
       </div>
-      <div class="flex items-center gap-3">
-        <div class="text-sm text-slate-500 dark:text-slate-400">{{ currentDateTime }}</div>
-        <button @click="refreshData" class="btn-secondary btn-sm">
+      <div style="display: flex; align-items: center; gap: var(--space-3); justify-content: space-between;">
+        <div style="font-size: var(--font-size-sm); color: var(--color-text-muted);">{{ currentDateTime }}</div>
+        <button @click="refreshData" class="btn btn-secondary btn-sm">
           <i class="fas fa-sync-alt"></i>
           Refresh
         </button>
@@ -16,54 +16,54 @@
     </div>
 
     <!-- Modern Stats Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-6);">
       <!-- Total Departments -->
-      <div class="stats-card group">
-        <div class="flex items-center justify-between">
+      <div class="stats-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <p class="stats-label">Total Departments</p>
             <p class="stats-value">{{ totalDepartments }}</p>
           </div>
-          <div class="stats-icon bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+          <div class="stats-icon" style="background-color: var(--color-primary-50); color: var(--color-primary-600);">
             <i class="fas fa-sitemap"></i>
           </div>
         </div>
       </div>
 
       <!-- Fully Staffed -->
-      <div class="stats-card group">
-        <div class="flex items-center justify-between">
+      <div class="stats-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <p class="stats-label">Fully Staffed</p>
-            <p class="stats-value status-good">{{ statusCounts.good }}</p>
+            <p class="stats-value" style="color: var(--color-success-600);">{{ statusCounts.good }}</p>
           </div>
-          <div class="stats-icon bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+          <div class="stats-icon" style="background-color: var(--color-success-50); color: var(--color-success-600);">
             <i class="fas fa-check-circle"></i>
           </div>
         </div>
       </div>
 
       <!-- Under-staffed -->
-      <div class="stats-card group">
-        <div class="flex items-center justify-between">
+      <div class="stats-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <p class="stats-label">Under-staffed</p>
-            <p class="stats-value status-warning">{{ statusCounts.warning }}</p>
+            <p class="stats-value" style="color: var(--color-warning-600);">{{ statusCounts.warning }}</p>
           </div>
-          <div class="stats-icon bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+          <div class="stats-icon" style="background-color: var(--color-warning-50); color: var(--color-warning-600);">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
         </div>
       </div>
 
       <!-- Critical -->
-      <div class="stats-card group">
-        <div class="flex items-center justify-between">
+      <div class="stats-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <p class="stats-label">Critical</p>
-            <p class="stats-value status-critical">{{ statusCounts.critical }}</p>
+            <p class="stats-value" style="color: var(--color-error-600);">{{ statusCounts.critical }}</p>
           </div>
-          <div class="stats-icon bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          <div class="stats-icon" style="background-color: var(--color-error-50); color: var(--color-error-600);">
             <i class="fas fa-times-circle"></i>
           </div>
         </div>
@@ -71,16 +71,16 @@
     </div>
 
     <!-- Modern Coverage Overview -->
-    <div class="card-elevated">
+    <div class="card card-elevated">
       <div class="card-header">
-        <div class="flex items-center justify-between">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <h3 class="card-title">Coverage Overview</h3>
             <p class="card-subtitle">Real-time departmental staffing levels</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="status-badge good">
-              <i class="fas fa-circle text-xs"></i>
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <span class="status-badge success">
+              <i class="fas fa-circle" style="font-size: var(--font-size-xs);"></i>
               Live Data
             </span>
           </div>
@@ -88,8 +88,8 @@
       </div>
       <div class="card-body">
         <!-- Modern Time Navigation Tabs -->
-        <div class="time-nav mb-8">
-          <nav class="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl" aria-label="Tabs">
+        <div class="time-nav" style="margin-bottom: var(--space-8);">
+          <nav style="display: flex; gap: var(--space-1); background-color: var(--color-surface); padding: var(--space-1); border-radius: var(--radius-xl);" aria-label="Tabs">
             <button
               v-for="timeView in timeViews"
               :key="timeView.id"

@@ -1,4 +1,6 @@
 ---
+import '../styles/global.css';
+
 export interface Props {
   title: string;
   description?: string;
@@ -8,98 +10,54 @@ const { title, description = "Porter Management System - Professional shift mana
 ---
 
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
-    
-    <!-- Flowbite CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
-    <!-- Global Styles -->
-    <script>
-      // Dark mode initialization script
-      if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    </script>
   </head>
-  
-  <body class="bg-slate-50 dark:bg-slate-950 antialiased">
-    <!-- Modern Navigation -->
-    <nav class="fixed top-0 z-50 w-full glass border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
-      <div class="px-4 py-4 lg:px-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center justify-start rtl:justify-end">
+
+  <body>
+    <!-- Modern Navigation Header -->
+    <nav style="position: fixed; top: 0; z-index: var(--z-fixed); width: 100%; background-color: var(--color-surface-elevated); border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-sm);">
+      <div style="padding: var(--space-4) var(--space-6);">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
             <!-- Mobile menu button -->
-            <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2.5 text-sm text-slate-500 rounded-xl sm:hidden hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-colors duration-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:focus:ring-slate-700">
-              <span class="sr-only">Open sidebar</span>
-              <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <button id="mobile-menu-toggle" type="button" style="display: none; align-items: center; justify-content: center; padding: var(--space-2); color: var(--color-text-muted); border-radius: var(--radius-lg); transition: all var(--transition-fast); border: none; background: none; cursor: pointer;">
+              <span style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Open sidebar</span>
+              <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 20 20">
                 <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
               </svg>
             </button>
-            
+
             <!-- Modern Logo -->
-            <a href="/" class="flex items-center ms-2 md:me-24 group">
-              <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center me-3 shadow-lg shadow-blue-500/25 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all duration-300">
-                <i class="fas fa-hospital-user text-white text-lg"></i>
+            <a href="/" style="display: flex; align-items: center; margin-left: var(--space-2); text-decoration: none; transition: all var(--transition-normal);">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700)); border-radius: var(--radius-2xl); display: flex; align-items: center; justify-content: center; margin-right: var(--space-3); box-shadow: var(--shadow-lg); transition: all var(--transition-normal);">
+                <i class="fas fa-hospital-user" style="color: var(--color-text-inverse); font-size: var(--font-size-lg);"></i>
               </div>
-              <div class="flex flex-col">
-                <span class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Porter Management</span>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Healthcare Staffing System</span>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); line-height: var(--line-height-tight);">Porter Management</span>
+                <span style="font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: var(--font-weight-medium);">Healthcare Staffing System</span>
               </div>
             </a>
           </div>
-          
+
           <!-- Right side items -->
-          <div class="flex items-center">
-            <div class="flex items-center ms-3">
-              <!-- Dark mode toggle -->
-              <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                </svg>
-              </button>
-              
-              <!-- User menu -->
-              <div class="flex items-center ms-3">
-                <div>
-                  <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" aria-expanded="false" data-dropdown-toggle="dropdown-user">
-                    <span class="sr-only">Open user menu</span>
-                    <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                      <i class="fas fa-user text-white text-sm"></i>
-                    </div>
-                  </button>
-                </div>
-                <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
-                  <div class="px-4 py-3" role="none">
-                    <p class="text-sm text-gray-900 dark:text-white" role="none">
-                      System Administrator
-                    </p>
-                    <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">
-                      admin@porter-management.local
-                    </p>
-                  </div>
-                  <ul class="py-1" role="none">
-                    <li>
-                      <a href="/configure" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Settings</a>
-                    </li>
-                    <li>
-                      <a href="/reports" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Reports</a>
-                    </li>
-                  </ul>
-                </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <!-- User info -->
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+              <div style="width: 32px; height: 32px; background-color: var(--color-primary-600); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-user" style="color: var(--color-text-inverse); font-size: var(--font-size-sm);"></i>
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary);">System Admin</span>
+                <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">admin@porter-management.local</span>
               </div>
             </div>
           </div>
@@ -108,124 +66,120 @@ const { title, description = "Porter Management System - Professional shift mana
     </nav>
 
     <!-- Modern Sidebar -->
-    <aside id="logo-sidebar" class="sidebar pt-20" aria-label="Sidebar">
+    <aside id="logo-sidebar" class="sidebar" aria-label="Sidebar" style="padding-top: 80px;">
       <div class="sidebar-content">
-        <ul class="space-y-1">
+        <nav style="display: flex; flex-direction: column; gap: var(--space-1);">
           <!-- Dashboard -->
-          <li>
-            <a href="/" class="nav-item">
-              <i class="fas fa-tachometer-alt nav-icon"></i>
-              <span class="nav-label">Dashboard</span>
-            </a>
-          </li>
+          <a href="/" class="nav-item">
+            <i class="fas fa-tachometer-alt nav-icon"></i>
+            <span class="nav-label">Dashboard</span>
+          </a>
 
           <!-- Configuration -->
-          <li>
-            <a href="/configure" class="nav-item">
-              <i class="fas fa-cogs nav-icon"></i>
-              <span class="nav-label">Configuration</span>
-            </a>
-          </li>
+          <a href="/configure" class="nav-item">
+            <i class="fas fa-cogs nav-icon"></i>
+            <span class="nav-label">Configuration</span>
+          </a>
 
           <!-- Reports -->
-          <li>
-            <a href="/reports" class="nav-item">
-              <i class="fas fa-chart-bar nav-icon"></i>
-              <span class="nav-label">Reports</span>
-            </a>
-          </li>
-          
+          <a href="/reports" class="nav-item">
+            <i class="fas fa-chart-bar nav-icon"></i>
+            <span class="nav-label">Reports</span>
+          </a>
+
           <!-- Divider -->
-          <li class="pt-4 mt-4 space-y-2 border-t border-gray-200 dark:border-gray-700">
-            <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Management</span>
-          </li>
-          
+          <div style="padding-top: var(--space-4); margin-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <span style="font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Management</span>
+          </div>
+
           <!-- Buildings -->
-          <li>
-            <a href="/configure#buildings" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-              <i class="fas fa-building w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-              <span class="ms-3">Buildings</span>
-            </a>
-          </li>
-          
+          <a href="/configure#buildings" class="nav-item">
+            <i class="fas fa-building nav-icon"></i>
+            <span class="nav-label">Buildings</span>
+          </a>
+
           <!-- Departments -->
-          <li>
-            <a href="/configure#departments" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-              <i class="fas fa-sitemap w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-              <span class="ms-3">Departments</span>
-            </a>
-          </li>
-          
+          <a href="/configure#departments" class="nav-item">
+            <i class="fas fa-sitemap nav-icon"></i>
+            <span class="nav-label">Departments</span>
+          </a>
+
           <!-- Porters -->
-          <li>
-            <a href="/configure#porters" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-              <i class="fas fa-users w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-              <span class="ms-3">Porters</span>
-            </a>
-          </li>
-          
+          <a href="/configure#porters" class="nav-item">
+            <i class="fas fa-users nav-icon"></i>
+            <span class="nav-label">Porters</span>
+          </a>
+
+          <!-- Services -->
+          <a href="/configure#services" class="nav-item">
+            <i class="fas fa-concierge-bell nav-icon"></i>
+            <span class="nav-label">Services</span>
+          </a>
+
           <!-- Shifts -->
-          <li>
-            <a href="/configure#shifts" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-              <i class="fas fa-clock w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-              <span class="ms-3">Shifts</span>
-            </a>
-          </li>
-        </ul>
+          <a href="/configure#shifts" class="nav-item">
+            <i class="fas fa-clock nav-icon"></i>
+            <span class="nav-label">Shifts</span>
+          </a>
+        </nav>
       </div>
     </aside>
 
     <!-- Modern Main Content -->
-    <div class="p-6 sm:ml-72">
-      <div class="mt-20 animate-fade-in">
+    <div style="padding: var(--space-6); margin-left: 288px;">
+      <div style="margin-top: 80px;" class="animate-fade-in">
         <slot />
       </div>
     </div>
 
-    <!-- Flowbite JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
-    
-    <!-- Dark mode toggle script -->
+    <!-- Mobile menu toggle script -->
     <script>
-      var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-      var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+      document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebar = document.getElementById('logo-sidebar');
 
-      // Change the icons inside the button based on previous settings
-      if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          themeToggleLightIcon.classList.remove('hidden');
-      } else {
-          themeToggleDarkIcon.classList.remove('hidden');
-      }
-
-      var themeToggleBtn = document.getElementById('theme-toggle');
-
-      themeToggleBtn.addEventListener('click', function() {
-
-          // toggle icons inside button
-          themeToggleDarkIcon.classList.toggle('hidden');
-          themeToggleLightIcon.classList.toggle('hidden');
-
-          // if set via local storage previously
-          if (localStorage.getItem('color-theme')) {
-              if (localStorage.getItem('color-theme') === 'light') {
-                  document.documentElement.classList.add('dark');
-                  localStorage.setItem('color-theme', 'dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-                  localStorage.setItem('color-theme', 'light');
-              }
-
-          // if NOT set via local storage previously
+        // Show mobile menu button on small screens
+        function updateMobileMenu() {
+          if (window.innerWidth < 640) {
+            mobileMenuToggle.style.display = 'flex';
+            sidebar.style.transform = 'translateX(-100%)';
           } else {
-              if (document.documentElement.classList.contains('dark')) {
-                  document.documentElement.classList.remove('dark');
-                  localStorage.setItem('color-theme', 'light');
-              } else {
-                  document.documentElement.classList.add('dark');
-                  localStorage.setItem('color-theme', 'dark');
-              }
+            mobileMenuToggle.style.display = 'none';
+            sidebar.style.transform = 'translateX(0)';
           }
-          
+        }
+
+        // Initial check
+        updateMobileMenu();
+
+        // Listen for window resize
+        window.addEventListener('resize', updateMobileMenu);
+
+        // Mobile menu toggle functionality
+        mobileMenuToggle.addEventListener('click', function() {
+          const isHidden = sidebar.style.transform === 'translateX(-100%)';
+          sidebar.style.transform = isHidden ? 'translateX(0)' : 'translateX(-100%)';
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+          if (window.innerWidth < 640 &&
+              !sidebar.contains(event.target) &&
+              !mobileMenuToggle.contains(event.target)) {
+            sidebar.style.transform = 'translateX(-100%)';
+          }
+        });
+
+        // Update active navigation item
+        const currentPath = window.location.pathname;
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+          const href = item.getAttribute('href');
+          if (href === currentPath || (currentPath === '/' && href === '/')) {
+            item.classList.add('active');
+          }
+        });
       });
     </script>
   </body>
